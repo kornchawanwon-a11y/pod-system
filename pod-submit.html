@@ -332,7 +332,7 @@ function compressImage(file){
     reader.onload = (ev) => {
       const img = new Image();
       img.onload = () => {
-        const MAX_DIM = 1280;
+        const MAX_DIM = 1000;
         let w = img.width, h = img.height;
         if(w > h && w > MAX_DIM){ h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
         else if(h > MAX_DIM){ w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
@@ -340,7 +340,7 @@ function compressImage(file){
         canvas.width = w; canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.7));
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
       };
       img.onerror = reject;
       img.src = ev.target.result;
@@ -412,7 +412,7 @@ function submitViaHiddenForm(url, fields){
     setTimeout(() => {
       form.remove();
       if(!resolved){ resolved = true; resolve(); } // fallback in case onload never fires
-    }, 8000);
+    }, 15000);
   });
 }
 
@@ -455,10 +455,10 @@ submitBtn.addEventListener('click', async () => {
     // Retry a few times with increasing delay — on slower mobile networks the
     // submission may still be processing right after the form submit resolves.
     let refCode = null;
-    const delays = [500, 1500, 2500, 3500, 4500]; // ~12.5s total across 5 tries
+    const delays = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000]; // ~36s across 8 tries
     for(let i = 0; i < delays.length && !refCode; i++){
       await new Promise(r => setTimeout(r, delays[i]));
-      submitLabel.textContent = 'กำลังยืนยันข้อมูล...';
+      submitLabel.textContent = 'กำลังยืนยันข้อมูล (' + (i+1) + '/' + delays.length + ')...';
       try {
         const confirmData = await jsonp(APPS_SCRIPT_URL, { action: 'search', billNo: bill });
         const match = (confirmData.results || []).find(r => String(r.billNo).trim() === String(bill).trim());
