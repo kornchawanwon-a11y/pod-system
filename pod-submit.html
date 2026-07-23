@@ -355,6 +355,62 @@ function updateTag(){
 }
 billNo.addEventListener('input', updateTag);
 
+// ---- JSONP helper: bypasses CORS entirely for reading data back ----
+function jsonp(url, params){
+  return new Promise((resolve, reject) => {
+    const cbName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+    const script = document.createElement('script');
+    const timer = setTimeout(() => { cleanup(); reject(new Error('หมดเวลารอการตอบกลับจาก Backend')); }, 12000);
+    function cleanup(){ delete window[cbName]; script.remove(); clearTimeout(timer); }
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({}, params, { callback: cbName })).toString();
+    script.src = url + '?' + qs;
+    script.onerror = () => { cleanup(); reject(new Error('เชื่อมต่อ Backend ไม่สำเร็จ')); };
+    document.body.appendChild(script);
+  });
+}
+
+// ---- Hidden iframe + form submit: bypasses CORS entirely for sending data ----
+function submitViaHiddenForm(url, fields){
+  return new Promise((resolve) => {
+    let iframe = document.getElementById('hiddenSubmitFrame');
+    if(!iframe){
+      iframe = document.createElement('iframe');
+      iframe.id = 'hiddenSubmitFrame';
+      iframe.name = 'hiddenSubmitFrame';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.target = 'hiddenSubmitFrame';
+    form.style.display = 'none';
+
+    function addField(name, value){
+      const inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = name;
+      inp.value = value;
+      form.appendChild(inp);
+    }
+    Object.keys(fields).forEach(key => {
+      const val = fields[key];
+      if(Array.isArray(val)){ val.forEach(v => addField(key, v)); }
+      else { addField(key, val); }
+    });
+
+    let resolved = false;
+    iframe.onload = () => { if(!resolved){ resolved = true; resolve(); } };
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => {
+      form.remove();
+      if(!resolved){ resolved = true; resolve(); } // fallback in case onload never fires
+    }, 4000);
+  });
+}
+
 const submitBtn = document.getElementById('submitBtn');
 const spinner = document.getElementById('spinner');
 const submitLabel = document.getElementById('submitLabel');
@@ -381,55 +437,44 @@ submitBtn.addEventListener('click', async () => {
   submitLabel.textContent = 'กำลังบันทึก...';
 
   try {
-    const payload = {
+    await submitViaHiddenForm(APPS_SCRIPT_URL, {
       action: 'submit',
       carrier: carrier,
       billNo: bill,
       deliveryDate: date,
       note: note.value.trim(),
       images: photos
-    };
-
-    // NOTE: Google Apps Script web apps have a known quirk where a normal
-    // (cors) POST via fetch can fail with "Failed to fetch" due to how
-    // Google redirects the request internally. Sending as 'no-cors' avoids
-    // that — we lose the ability to read the response body directly, but
-    // the request still completes on the server before this promise resolves.
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(payload)
     });
 
-    // Confirm the record actually landed, and fetch its real reference code,
-    // via a normal readable GET request (GET does not have the same issue).
+    // Confirm the record actually landed, and fetch its real reference code.
     let refCode = null;
     try {
-      const confirmUrl = APPS_SCRIPT_URL + '?' + new URLSearchParams({ action: 'search', billNo: bill }).toString();
-      const confirmResp = await fetch(confirmUrl);
-      const confirmData = await confirmResp.json();
+      const confirmData = await jsonp(APPS_SCRIPT_URL, { action: 'search', billNo: bill });
       const match = (confirmData.results || []).find(r => r.billNo === bill && r.deliveryDate === date);
       if(match){ refCode = match.refCode; }
     } catch(confirmErr) {
-      console.warn('Could not confirm via GET (submission likely still succeeded):', confirmErr);
+      console.warn('Could not confirm via JSONP:', confirmErr);
     }
 
-    document.getElementById('refcode').textContent = refCode
-      ? ('อ้างอิง: ' + refCode)
-      : 'ส่งข้อมูลแล้ว (กรุณาตรวจสอบใน Google Sheet เพื่อยืนยัน)';
+    if(!refCode){
+      throw new Error('ไม่พบข้อมูลที่เพิ่งส่งในระบบ อาจบันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    }
+
+    document.getElementById('refcode').textContent = 'อ้างอิง: ' + refCode;
     document.getElementById('mainform').classList.add('hide');
     document.getElementById('submitbar').style.display = 'none';
     document.getElementById('successwrap').classList.add('show');
 
   } catch(err) {
     console.error('Save failed:', err);
-    showError('บันทึกไม่สำเร็จ: ' + err.message + ' — กรุณาเช็คว่า URL ถูกต้องและ Deploy เป็น "Anyone" แล้ว');
+    showError('บันทึกไม่สำเร็จ: ' + err.message);
   } finally {
     submitBtn.disabled = false;
     spinner.classList.remove('show');
     submitLabel.textContent = 'ส่งหลักฐานการจัดส่ง';
   }
 });
+
 
 document.getElementById('againBtn').addEventListener('click', () => {
   carrierName.value = '';
