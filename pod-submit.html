@@ -450,7 +450,7 @@ submitBtn.addEventListener('click', async () => {
     let refCode = null;
     try {
       const confirmData = await jsonp(APPS_SCRIPT_URL, { action: 'search', billNo: bill });
-      const match = (confirmData.results || []).find(r => r.billNo === bill && r.deliveryDate === date);
+      const match = (confirmData.results || []).find(r => String(r.billNo).trim() === String(bill).trim());
       if(match){ refCode = match.refCode; }
     } catch(confirmErr) {
       console.warn('Could not confirm via JSONP:', confirmErr);
