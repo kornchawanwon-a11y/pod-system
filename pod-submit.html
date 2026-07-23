@@ -221,7 +221,7 @@
           <label>รูปถ่ายหลักฐานการส่งงาน <span class="req">*</span> <span class="opt">(สูงสุด 5 รูป)</span></label>
           <div class="photogrid" id="photogrid"></div>
           <div class="photocount" id="photocount">0 / 5 รูป</div>
-          <input type="file" id="fileInput" accept="image/*" style="display:none">
+          <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
         </div>
 
         <div class="field" style="margin-bottom:4px;">
@@ -307,18 +307,23 @@ function renderGrid(){
 renderGrid();
 
 fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if(!file) return;
-  compressImage(file).then(dataUrl => {
-    if(photos.length < MAX_PHOTOS){
-      photos.push(dataUrl);
+  const files = Array.from(e.target.files || []);
+  if(files.length === 0) return;
+
+  const slotsLeft = MAX_PHOTOS - photos.length;
+  const toProcess = files.slice(0, slotsLeft);
+
+  Promise.all(toProcess.map(f => compressImage(f).catch(() => null)))
+    .then(results => {
+      results.forEach(dataUrl => {
+        if(dataUrl && photos.length < MAX_PHOTOS){ photos.push(dataUrl); }
+      });
       renderGrid();
-    }
-    fileInput.value = '';
-  }).catch(() => {
-    showError('ไม่สามารถอ่านรูปภาพนี้ได้ ลองใหม่อีกครั้ง');
-    fileInput.value = '';
-  });
+      if(results.some(r => r === null)){
+        showError('บางรูปไม่สามารถอ่านได้ กรุณาลองใหม่');
+      }
+      fileInput.value = '';
+    });
 });
 
 function compressImage(file){
@@ -407,7 +412,7 @@ function submitViaHiddenForm(url, fields){
     setTimeout(() => {
       form.remove();
       if(!resolved){ resolved = true; resolve(); } // fallback in case onload never fires
-    }, 4000);
+    }, 8000);
   });
 }
 
@@ -447,13 +452,20 @@ submitBtn.addEventListener('click', async () => {
     });
 
     // Confirm the record actually landed, and fetch its real reference code.
+    // Retry a few times with increasing delay — on slower mobile networks the
+    // submission may still be processing right after the form submit resolves.
     let refCode = null;
-    try {
-      const confirmData = await jsonp(APPS_SCRIPT_URL, { action: 'search', billNo: bill });
-      const match = (confirmData.results || []).find(r => String(r.billNo).trim() === String(bill).trim());
-      if(match){ refCode = match.refCode; }
-    } catch(confirmErr) {
-      console.warn('Could not confirm via JSONP:', confirmErr);
+    const delays = [500, 1500, 2500, 3500, 4500]; // ~12.5s total across 5 tries
+    for(let i = 0; i < delays.length && !refCode; i++){
+      await new Promise(r => setTimeout(r, delays[i]));
+      submitLabel.textContent = 'กำลังยืนยันข้อมูล...';
+      try {
+        const confirmData = await jsonp(APPS_SCRIPT_URL, { action: 'search', billNo: bill });
+        const match = (confirmData.results || []).find(r => String(r.billNo).trim() === String(bill).trim());
+        if(match){ refCode = match.refCode; }
+      } catch(confirmErr) {
+        console.warn('Confirm attempt ' + i + ' failed:', confirmErr);
+      }
     }
 
     if(!refCode){
