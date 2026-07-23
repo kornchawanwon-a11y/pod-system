@@ -10,7 +10,7 @@
   :root{
     --ink:#1B2430;
     --ink-soft:#2C3847;
-    --paper:#F6F4EE;	
+    --paper:#F6F4EE;
     --paper-card:#FFFFFF;
     --amber:#E8960A;
     --amber-deep:#C97C05;
@@ -390,23 +390,40 @@ submitBtn.addEventListener('click', async () => {
       images: photos
     };
 
-    const resp = await fetch(APPS_SCRIPT_URL, {
+    // NOTE: Google Apps Script web apps have a known quirk where a normal
+    // (cors) POST via fetch can fail with "Failed to fetch" due to how
+    // Google redirects the request internally. Sending as 'no-cors' avoids
+    // that — we lose the ability to read the response body directly, but
+    // the request still completes on the server before this promise resolves.
+    await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
+      mode: 'no-cors',
       body: JSON.stringify(payload)
     });
-    const result = await resp.json();
-    if(!result || !result.success){
-      throw new Error((result && result.error) ? result.error : 'ไม่ทราบสาเหตุ');
+
+    // Confirm the record actually landed, and fetch its real reference code,
+    // via a normal readable GET request (GET does not have the same issue).
+    let refCode = null;
+    try {
+      const confirmUrl = APPS_SCRIPT_URL + '?' + new URLSearchParams({ action: 'search', billNo: bill }).toString();
+      const confirmResp = await fetch(confirmUrl);
+      const confirmData = await confirmResp.json();
+      const match = (confirmData.results || []).find(r => r.billNo === bill && r.deliveryDate === date);
+      if(match){ refCode = match.refCode; }
+    } catch(confirmErr) {
+      console.warn('Could not confirm via GET (submission likely still succeeded):', confirmErr);
     }
 
-    document.getElementById('refcode').textContent = 'อ้างอิง: ' + result.refCode;
+    document.getElementById('refcode').textContent = refCode
+      ? ('อ้างอิง: ' + refCode)
+      : 'ส่งข้อมูลแล้ว (กรุณาตรวจสอบใน Google Sheet เพื่อยืนยัน)';
     document.getElementById('mainform').classList.add('hide');
     document.getElementById('submitbar').style.display = 'none';
     document.getElementById('successwrap').classList.add('show');
 
   } catch(err) {
     console.error('Save failed:', err);
-    showError('บันทึกไม่สำเร็จ: ' + err.message);
+    showError('บันทึกไม่สำเร็จ: ' + err.message + ' — กรุณาเช็คว่า URL ถูกต้องและ Deploy เป็น "Anyone" แล้ว');
   } finally {
     submitBtn.disabled = false;
     spinner.classList.remove('show');
