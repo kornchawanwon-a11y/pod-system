@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ค้นหาหลักฐานการจัดส่ง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2430;
+    --ink-soft:#2C3847;
+    --paper:#F6F4EE;
+    --paper-card:#FFFFFF;
+    --amber:#E8960A;
+    --amber-deep:#C97C05;
+    --stamp-green:#2E6B4F;
+    --slate:#6B7680;
+    --line:#D9D4C6;
+    --danger:#B3432E;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:22px 16px 60px;}
+
+  .brandbar{display:flex;align-items:center;gap:10px;padding:6px 4px 22px;}
+  .brandmark{
+    width:38px;height:38px;border-radius:8px;background:var(--ink);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .brandmark svg{width:20px;height:20px;}
+  .brandtext .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--amber-deep);font-weight:600;
+  }
+  .brandtext h1{font-family:'Oswald',sans-serif;font-weight:600;font-size:20px;margin:1px 0 0;}
+
+  /* search bar */
+  .searchcard{
+    background:var(--paper-card);border:1px solid var(--line);border-radius:14px;
+    padding:16px;box-shadow:0 1px 2px rgba(27,36,48,.04), 0 8px 24px -12px rgba(27,36,48,.1);
+    margin-bottom:22px;
+  }
+  .searchrow{display:flex;gap:10px;align-items:center;}
+  .searchrow svg{flex-shrink:0;color:var(--slate);}
+  #searchInput{
+    flex:1;border:none;outline:none;font-size:17px;font-family:'IBM Plex Mono',monospace;
+    font-weight:600;color:var(--ink);background:transparent;letter-spacing:.01em;
+  }
+  #searchInput::placeholder{color:#A7ADB3;font-family:'Inter',sans-serif;font-weight:500;}
+  .clearbtn{
+    background:none;border:none;color:var(--slate);font-size:18px;cursor:pointer;
+    display:none;padding:4px;
+  }
+  .clearbtn.show{display:block;}
+  .searchmeta{margin-top:10px;font-size:12.5px;color:var(--slate);font-family:'IBM Plex Mono',monospace;padding-left:2px;}
+
+  /* result rows */
+  .resultsLabel{
+    font-size:12.5px;font-weight:600;color:var(--slate);text-transform:uppercase;
+    letter-spacing:.08em;margin:0 0 10px 4px;
+  }
+  .rowcard{
+    background:var(--paper-card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 15px;margin-bottom:9px;cursor:pointer;
+    display:flex;align-items:center;gap:13px;
+    transition:border-color .12s ease, transform .08s ease;
+  }
+  .rowcard:active{transform:scale(.99);}
+  .rowcard:hover{border-color:var(--amber);}
+  .rowicon{
+    width:38px;height:38px;border-radius:8px;background:#F2EFE7;color:var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;
+    font-weight:700;font-size:12px;
+  }
+  .rowmain{flex:1;min-width:0;}
+  .rowbill{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;color:var(--ink);}
+  .rowsub{font-size:13px;color:var(--slate);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rowarrow{color:var(--slate);flex-shrink:0;}
+
+  .empty{
+    text-align:center;padding:60px 20px;color:var(--slate);
+  }
+  .empty svg{margin-bottom:14px;opacity:.5;}
+  .empty p{font-size:14.5px;margin:0;}
+  .empty .sub{font-size:13px;margin-top:5px;color:#9BA2A8;}
+
+  .loading{text-align:center;padding:50px 20px;color:var(--slate);font-size:14px;}
+  .spinner{
+    width:22px;height:22px;border-radius:50%;border:2.5px solid var(--line);
+    border-top-color:var(--amber);animation:spin .7s linear infinite;margin:0 auto 12px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* modal */
+  .overlay{
+    display:none;position:fixed;inset:0;background:rgba(27,36,48,.55);
+    z-index:50;padding:0;align-items:flex-end;justify-content:center;
+  }
+  .overlay.show{display:flex;}
+  @media(min-width:640px){
+    .overlay{align-items:center;padding:20px;}
+  }
+  .modal{
+    background:var(--paper-card);width:100%;max-width:600px;border-radius:18px 18px 0 0;
+    max-height:92vh;overflow-y:auto;position:relative;
+  }
+  @media(min-width:640px){ .modal{border-radius:16px;} }
+  .modal::before{
+    content:"";display:block;height:5px;
+    background:repeating-linear-gradient(90deg,var(--amber) 0 14px, transparent 14px 24px);
+  }
+  .modalhead{padding:18px 20px 4px;position:relative;}
+  .closeBtn{
+    position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;
+    background:#F2EFE7;border:none;color:var(--ink-soft);font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .modalbill{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:20px;color:var(--ink);}
+  .modalgrid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:6px 20px 4px;
+  }
+  .modalgrid img{
+    width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid var(--line);
+    cursor:pointer;
+  }
+  .detailrows{padding:14px 20px 4px;}
+  .drow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #EEEBE1;font-size:14px;}
+  .drow:last-child{border-bottom:none;}
+  .drow .k{color:var(--slate);}
+  .drow .v{font-weight:600;color:var(--ink);text-align:right;max-width:65%;}
+  .notebox{
+    margin:6px 20px 20px;background:#FBF9F4;border:1px solid var(--line);border-radius:10px;
+    padding:11px 13px;font-size:13.5px;color:var(--ink-soft);line-height:1.5;
+  }
+  .notebox .lbl{font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:4px;}
+
+  /* lightbox */
+  .lightbox{
+    display:none;position:fixed;inset:0;background:rgba(10,13,17,.92);z-index:60;
+    align-items:center;justify-content:center;flex-direction:column;padding:20px;
+  }
+  .lightbox.show{display:flex;}
+  .lightbox img{max-width:100%;max-height:78vh;border-radius:8px;}
+  .lbcontrols{display:flex;gap:16px;margin-top:18px;align-items:center;}
+  .lbbtn{
+    background:rgba(255,255,255,.12);border:none;color:#fff;width:42px;height:42px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;
+  }
+  .lbclose{position:absolute;top:18px;right:18px;background:rgba(255,255,255,.12);color:#fff;border:none;
+    width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;}
+  .lbcount{color:#B9BEC3;font-size:12.5px;font-family:'IBM Plex Mono',monospace;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <div class="brandmark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 7L12 3L21 7V17L12 21L3 17V7Z" stroke="#F6F4EE" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 7L12 11L21 7" stroke="#E8960A" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 11V21" stroke="#F6F4EE" stroke-width="1.6"/></svg>
+    </div>
+    <div class="brandtext">
+      <div class="eyebrow">Proof of Delivery</div>
+      <h1>ค้นหาหลักฐานการจัดส่ง</h1>
+    </div>
+  </div>
+
+  <div class="searchcard">
+    <div class="searchrow">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input type="text" id="searchInput" placeholder="ค้นหาด้วยเลขที่บิล...">
+      <button class="clearbtn" id="clearBtn" type="button">&times;</button>
+    </div>
+    <div class="searchmeta" id="searchMeta">กำลังโหลดดัชนีข้อมูล...</div>
+  </div>
+
+  <div id="resultsLabel" class="resultsLabel" style="display:none;"></div>
+  <div id="resultsArea"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modalhead">
+      <button class="closeBtn" id="closeModal">&times;</button>
+      <div class="modalbill" id="modalBill">-</div>
+    </div>
+    <div class="modalgrid" id="modalGrid"></div>
+    <div class="detailrows" id="detailRows"></div>
+    <div class="notebox" id="noteBox" style="display:none;">
+      <div class="lbl">หมายเหตุจากขนส่ง</div>
+      <div id="noteText"></div>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lbclose" id="lbClose">&times;</button>
+  <img id="lbImg" src="">
+  <div class="lbcontrols">
+    <button class="lbbtn" id="lbPrev">&#8249;</button>
+    <a id="lbDownload" download="proof.jpg"><button class="lbbtn" type="button">&#8595;</button></a>
+    <button class="lbbtn" id="lbNext">&#8250;</button>
+  </div>
+  <div class="lbcount" id="lbCount"></div>
+</div>
+
+<script>
+// ตั้งค่านี้หลัง Deploy Google Apps Script แล้ว (ดูคู่มือตั้งค่า.md) — ต้องเป็น URL เดียวกับใน pod-submit.html
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyr0ysUfRXcyC42YSd9FQkCdWnTkPpOFgyuRY_0LRDgbJivmggv-66Ig3PWgfUlNCjE/exec";
+
+let currentImages = [];
+let currentImgIdx = 0;
+let debounceTimer = null;
+
+const searchInput = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearBtn');
+const searchMeta = document.getElementById('searchMeta');
+const resultsArea = document.getElementById('resultsArea');
+const resultsLabel = document.getElementById('resultsLabel');
+
+function fmtDate(iso){
+  if(!iso) return '-';
+  const d = new Date(iso + 'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'numeric'});
+}
+function fmtDateTime(iso){
+  if(!iso) return '-';
+  const d = new Date(iso);
+  return d.toLocaleString('th-TH', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+function escapeHtml(s){
+  const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+}
+
+function backendConfigured(){
+  return APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('script.google.com') > -1;
+}
+
+async function callBackend(params){
+  const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const resp = await fetch(url);
+  const data = await resp.json();
+  if(!data || !data.success){ throw new Error((data && data.error) || 'เรียกข้อมูลไม่สำเร็จ'); }
+  return data.results || [];
+}
+
+async function loadRecent(){
+  if(!backendConfigured()){
+    resultsArea.innerHTML = '<div class="empty"><p>ยังไม่ได้ตั้งค่า Backend</p><div class="sub">กรุณาใส่ APPS_SCRIPT_URL ในไฟล์นี้ก่อน (ดูคู่มือตั้งค่า.md)</div></div>';
+    searchMeta.textContent = 'ยังไม่ได้เชื่อมต่อ Backend';
+    return;
+  }
+  resultsArea.innerHTML = '<div class="loading"><div class="spinner"></div>กำลังโหลดข้อมูล...</div>';
+  try {
+    const results = await callBackend({ action: 'recent' });
+    searchMeta.textContent = 'แสดงรายการล่าสุด';
+    renderResults(results, 'รายการล่าสุด');
+  } catch(e) {
+    resultsArea.innerHTML = '<div class="empty"><p>โหลดข้อมูลไม่สำเร็จ</p><div class="sub">' + escapeHtml(e.message) + '</div></div>';
+  }
+}
+
+async function doSearch(query){
+  resultsArea.innerHTML = '<div class="loading"><div class="spinner"></div>กำลังค้นหา...</div>';
+  try {
+    const results = await callBackend({ action: 'search', billNo: query });
+    renderResults(results, 'พบ ' + results.length + ' รายการ');
+  } catch(e) {
+    resultsArea.innerHTML = '<div class="empty"><p>ค้นหาไม่สำเร็จ</p><div class="sub">' + escapeHtml(e.message) + '</div></div>';
+  }
+}
+
+function renderResults(matches, label){
+  resultsLabel.style.display = matches.length ? 'block' : 'none';
+  resultsLabel.textContent = label;
+
+  if(matches.length === 0){
+    resultsArea.innerHTML = `
+      <div class="empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M20 20L16.65 16.65" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <p>ไม่พบเลขที่บิลนี้ในระบบ</p>
+        <div class="sub">ลองตรวจสอบเลขที่บิลอีกครั้ง หรืออาจยังไม่มีขนส่งแนบหลักฐานเข้ามา</div>
+      </div>`;
+    return;
+  }
+
+  resultsArea.innerHTML = '';
+  matches.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'rowcard';
+    row.innerHTML = `
+      <div class="rowicon">${(item.carrier||'?').slice(0,2).toUpperCase()}</div>
+      <div class="rowmain">
+        <div class="rowbill">${escapeHtml(item.billNo || '-')}</div>
+        <div class="rowsub">${escapeHtml(item.carrier||'-')} · ${fmtDate(item.deliveryDate)}</div>
+      </div>
+      <div class="rowarrow">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>`;
+    row.onclick = () => openDetail(item);
+    resultsArea.appendChild(row);
+  });
+}
+
+searchInput.addEventListener('input', () => {
+  clearBtn.classList.toggle('show', searchInput.value.length > 0);
+  clearTimeout(debounceTimer);
+  const q = searchInput.value.trim();
+  debounceTimer = setTimeout(() => {
+    if(q === ''){ loadRecent(); } else { doSearch(q); }
+  }, 350);
+});
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  clearBtn.classList.remove('show');
+  loadRecent();
+  searchInput.focus();
+});
+
+const overlay = document.getElementById('overlay');
+const modalBill = document.getElementById('modalBill');
+const modalGrid = document.getElementById('modalGrid');
+const detailRows = document.getElementById('detailRows');
+const noteBox = document.getElementById('noteBox');
+const noteText = document.getElementById('noteText');
+
+function openDetail(item){
+  overlay.classList.add('show');
+  modalBill.textContent = item.billNo || '-';
+  noteBox.style.display = 'none';
+
+  currentImages = item.images || [];
+  modalGrid.innerHTML = '';
+  if(currentImages.length === 0){
+    modalGrid.innerHTML = '<div class="empty" style="grid-column:1/-1;">ไม่พบรูปภาพสำหรับรายการนี้</div>';
+  } else {
+    currentImages.forEach((src, i) => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.loading = 'lazy';
+      img.onclick = () => openLightbox(i);
+      modalGrid.appendChild(img);
+    });
+  }
+
+  detailRows.innerHTML = `
+    <div class="drow"><div class="k">ขนส่ง</div><div class="v">${escapeHtml(item.carrier||'-')}</div></div>
+    <div class="drow"><div class="k">เลขที่บิล</div><div class="v">${escapeHtml(item.billNo||'-')}</div></div>
+    <div class="drow"><div class="k">วันที่ส่งงาน</div><div class="v">${fmtDate(item.deliveryDate)}</div></div>
+    <div class="drow"><div class="k">เวลาที่แนบเข้าระบบ</div><div class="v">${fmtDateTime(item.timestamp)}</div></div>
+  `;
+  if(item.note){
+    noteBox.style.display = 'block';
+    noteText.textContent = item.note;
+  }
+}
+
+document.getElementById('closeModal').onclick = () => overlay.classList.remove('show');
+overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.classList.remove('show'); });
+
+// lightbox
+const lightbox = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+const lbCount = document.getElementById('lbCount');
+const lbDownload = document.getElementById('lbDownload');
+
+function openLightbox(idx){
+  currentImgIdx = idx;
+  updateLightbox();
+  lightbox.classList.add('show');
+}
+function updateLightbox(){
+  lbImg.src = currentImages[currentImgIdx];
+  lbDownload.href = currentImages[currentImgIdx];
+  lbCount.textContent = (currentImgIdx+1) + ' / ' + currentImages.length;
+}
+document.getElementById('lbPrev').onclick = () => { currentImgIdx = (currentImgIdx - 1 + currentImages.length) % currentImages.length; updateLightbox(); };
+document.getElementById('lbNext').onclick = () => { currentImgIdx = (currentImgIdx + 1) % currentImages.length; updateLightbox(); };
+document.getElementById('lbClose').onclick = () => lightbox.classList.remove('show');
+lightbox.addEventListener('click', (e) => { if(e.target === lightbox) lightbox.classList.remove('show'); });
+
+loadRecent();
+</script>
+</body>
+</html>
