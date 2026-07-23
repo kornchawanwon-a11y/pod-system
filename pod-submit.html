@@ -375,51 +375,15 @@ function jsonp(url, params){
   });
 }
 
-// ---- Hidden iframe + form submit: bypasses CORS entirely for sending data ----
-function submitViaHiddenForm(url, fields){
-  return new Promise((resolve) => {
-    let iframe = document.getElementById('hiddenSubmitFrame');
-    if(!iframe){
-      iframe = document.createElement('iframe');
-      iframe.id = 'hiddenSubmitFrame';
-      iframe.name = 'hiddenSubmitFrame';
-      iframe.style.position = 'absolute';
-      iframe.style.width = '1px';
-      iframe.style.height = '1px';
-      iframe.style.left = '-9999px';
-      iframe.style.top = '-9999px';
-      iframe.style.border = '0';
-      iframe.style.opacity = '0';
-      document.body.appendChild(iframe);
-    }
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = url;
-    form.target = 'hiddenSubmitFrame';
-    form.style.display = 'none';
-
-    function addField(name, value){
-      const inp = document.createElement('input');
-      inp.type = 'hidden';
-      inp.name = name;
-      inp.value = value;
-      form.appendChild(inp);
-    }
-    Object.keys(fields).forEach(key => {
-      const val = fields[key];
-      if(Array.isArray(val)){ val.forEach(v => addField(key, v)); }
-      else { addField(key, val); }
-    });
-
-    let resolved = false;
-    iframe.onload = () => { if(!resolved){ resolved = true; resolve(); } };
-    document.body.appendChild(form);
-    form.submit();
-    setTimeout(() => {
-      form.remove();
-      if(!resolved){ resolved = true; resolve(); } // fallback in case onload never fires
-    }, 15000);
-  });
+// ---- Submit via fetch with text/plain: a CORS "simple request" that does
+// NOT trigger a preflight, so it works cross-origin to Apps Script on both
+// mobile and desktop, and can carry a large JSON body (the images). ----
+function submitData(url, payload){
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(resp => resp.json());
 }
 
 const submitBtn = document.getElementById('submitBtn');
@@ -448,29 +412,38 @@ submitBtn.addEventListener('click', async () => {
   submitLabel.textContent = 'กำลังบันทึก...';
 
   try {
-    await submitViaHiddenForm(APPS_SCRIPT_URL, {
-      action: 'submit',
-      carrier: carrier,
-      billNo: bill,
-      deliveryDate: date,
-      note: note.value.trim(),
-      images: photos
-    });
-
-    // Confirm the record actually landed, and fetch its real reference code.
-    // Retry a few times with increasing delay — on slower mobile networks the
-    // submission may still be processing right after the form submit resolves.
     let refCode = null;
-    const delays = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000]; // ~36s across 8 tries
-    for(let i = 0; i < delays.length && !refCode; i++){
-      await new Promise(r => setTimeout(r, delays[i]));
-      submitLabel.textContent = 'กำลังยืนยันข้อมูล (' + (i+1) + '/' + delays.length + ')...';
-      try {
-        const confirmData = await jsonp(APPS_SCRIPT_URL, { action: 'search', billNo: bill });
-        const match = (confirmData.results || []).find(r => String(r.billNo).trim() === String(bill).trim());
-        if(match){ refCode = match.refCode; }
-      } catch(confirmErr) {
-        console.warn('Confirm attempt ' + i + ' failed:', confirmErr);
+
+    // Primary path: read the response directly.
+    try {
+      const result = await submitData(APPS_SCRIPT_URL, {
+        action: 'submit',
+        carrier: carrier,
+        billNo: bill,
+        deliveryDate: date,
+        note: note.value.trim(),
+        images: photos
+      });
+      if(result && result.success){ refCode = result.refCode; }
+      else if(result && result.error){ throw new Error(result.error); }
+    } catch(sendErr) {
+      console.warn('Direct submit read failed, will verify via JSONP:', sendErr);
+    }
+
+    // Fallback / verification: if we couldn't read the response for any reason,
+    // confirm the record actually landed and fetch its reference code.
+    if(!refCode){
+      const delays = [1000, 2000, 3000, 4000, 5000, 6000]; // ~21s
+      for(let i = 0; i < delays.length && !refCode; i++){
+        await new Promise(r => setTimeout(r, delays[i]));
+        submitLabel.textContent = 'กำลังยืนยันข้อมูล (' + (i+1) + '/' + delays.length + ')...';
+        try {
+          const confirmData = await jsonp(APPS_SCRIPT_URL, { action: 'search', billNo: bill });
+          const match = (confirmData.results || []).find(r => String(r.billNo).trim() === String(bill).trim());
+          if(match){ refCode = match.refCode; }
+        } catch(confirmErr) {
+          console.warn('Confirm attempt ' + i + ' failed:', confirmErr);
+        }
       }
     }
 
