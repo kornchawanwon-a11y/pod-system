@@ -375,16 +375,11 @@ function jsonp(url, params){
   });
 }
 
-// ---- Submit via fetch with text/plain: a CORS "simple request" that does
-// NOT trigger a preflight, so it works cross-origin to Apps Script on both
-// mobile and desktop, and can carry a large JSON body (the images). ----
-function submitData(url, payload){
-  return fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload)
-  }).then(resp => resp.json());
-}
+// ---- Submit via chunked JSONP (GET only) — the one method proven to work
+// cross-origin to Apps Script without ever hitting CORS. Each image is split
+// into small pieces (URLs have a length limit), sent one at a time, then a
+// final 'commit' call assembles them and writes the row. ----
+const CHUNK_SIZE = 6000; // ตัวอักษร base64 ต่อ 1 ชิ้น (ปลอดภัยต่อความยาว URL และเร็ว)
 
 const submitBtn = document.getElementById('submitBtn');
 const spinner = document.getElementById('spinner');
@@ -409,49 +404,59 @@ submitBtn.addEventListener('click', async () => {
 
   submitBtn.disabled = true;
   spinner.classList.add('show');
-  submitLabel.textContent = 'กำลังบันทึก...';
+  submitLabel.textContent = 'กำลังเตรียมข้อมูล...';
 
   try {
-    let refCode = null;
+    const uploadId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
-    // Primary path: read the response directly.
-    try {
-      const result = await submitData(APPS_SCRIPT_URL, {
-        action: 'submit',
-        carrier: carrier,
-        billNo: bill,
-        deliveryDate: date,
-        note: note.value.trim(),
-        images: photos
-      });
-      if(result && result.success){ refCode = result.refCode; }
-      else if(result && result.error){ throw new Error(result.error); }
-    } catch(sendErr) {
-      console.warn('Direct submit read failed, will verify via JSONP:', sendErr);
-    }
+    // แบ่งแต่ละรูปเป็นชิ้นๆ
+    const chunkCounts = [];
+    let totalChunks = 0;
+    const perImageChunks = photos.map(img => {
+      const pieces = [];
+      for(let i = 0; i < img.length; i += CHUNK_SIZE){ pieces.push(img.slice(i, i + CHUNK_SIZE)); }
+      chunkCounts.push(pieces.length);
+      totalChunks += pieces.length;
+      return pieces;
+    });
 
-    // Fallback / verification: if we couldn't read the response for any reason,
-    // confirm the record actually landed and fetch its reference code.
-    if(!refCode){
-      const delays = [1000, 2000, 3000, 4000, 5000, 6000]; // ~21s
-      for(let i = 0; i < delays.length && !refCode; i++){
-        await new Promise(r => setTimeout(r, delays[i]));
-        submitLabel.textContent = 'กำลังยืนยันข้อมูล (' + (i+1) + '/' + delays.length + ')...';
-        try {
-          const confirmData = await jsonp(APPS_SCRIPT_URL, { action: 'search', billNo: bill });
-          const match = (confirmData.results || []).find(r => String(r.billNo).trim() === String(bill).trim());
-          if(match){ refCode = match.refCode; }
-        } catch(confirmErr) {
-          console.warn('Confirm attempt ' + i + ' failed:', confirmErr);
-        }
+    // ส่งชิ้นส่วนทีละชิ้น (ตามลำดับ เพื่อความเสถียร)
+    let sent = 0;
+    for(let imgIndex = 0; imgIndex < perImageChunks.length; imgIndex++){
+      const pieces = perImageChunks[imgIndex];
+      for(let chunkIndex = 0; chunkIndex < pieces.length; chunkIndex++){
+        const res = await jsonp(APPS_SCRIPT_URL, {
+          action: 'chunk',
+          uploadId: uploadId,
+          imgIndex: imgIndex,
+          chunkIndex: chunkIndex,
+          data: pieces[chunkIndex]
+        });
+        if(!res || !res.success){ throw new Error('อัพโหลดรูปไม่สำเร็จ กรุณาลองใหม่'); }
+        sent++;
+        const pct = Math.round(sent / totalChunks * 100);
+        submitLabel.textContent = 'กำลังอัพโหลดรูป ' + pct + '%';
       }
     }
 
-    if(!refCode){
-      throw new Error('ไม่พบข้อมูลที่เพิ่งส่งในระบบ อาจบันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    // สั่ง commit ให้ Backend ประกอบรูป + บันทึกลง Sheet
+    submitLabel.textContent = 'กำลังบันทึก...';
+    const commitRes = await jsonp(APPS_SCRIPT_URL, {
+      action: 'commit',
+      uploadId: uploadId,
+      carrier: carrier,
+      billNo: bill,
+      deliveryDate: date,
+      note: note.value.trim(),
+      imgCount: photos.length,
+      chunkCounts: chunkCounts.join(',')
+    });
+
+    if(!commitRes || !commitRes.success){
+      throw new Error((commitRes && commitRes.error) ? commitRes.error : 'บันทึกไม่สำเร็จ กรุณาลองใหม่');
     }
 
-    document.getElementById('refcode').textContent = 'อ้างอิง: ' + refCode;
+    document.getElementById('refcode').textContent = 'อ้างอิง: ' + commitRes.refCode;
     document.getElementById('mainform').classList.add('hide');
     document.getElementById('submitbar').style.display = 'none';
     document.getElementById('successwrap').classList.add('show');
