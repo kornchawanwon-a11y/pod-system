@@ -8,183 +8,67 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1B2430;
-    --ink-soft:#2C3847;
-    --paper:#F6F4EE;
-    --paper-card:#FFFFFF;
-    --amber:#E8960A;
-    --amber-deep:#C97C05;
-    --stamp-green:#2E6B4F;
-    --slate:#6B7680;
-    --line:#D9D4C6;
-    --danger:#B3432E;
+    --ink:#1B2430; --ink-soft:#2C3847; --paper:#F6F4EE; --paper-card:#FFFFFF;
+    --amber:#E8960A; --amber-deep:#C97C05; --stamp-green:#2E6B4F; --slate:#6B7680;
+    --line:#D9D4C6; --danger:#B3432E;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{
-    background:var(--paper);
-    font-family:'Inter',system-ui,sans-serif;
-    color:var(--ink);
-    min-height:100vh;
-    padding-bottom:110px;
-  }
+  body{background:var(--paper);font-family:'Inter',system-ui,sans-serif;color:var(--ink);min-height:100vh;padding-bottom:110px;}
   .wrap{max-width:520px;margin:0 auto;padding:20px 16px 40px;}
-
-  /* header */
-  .brandbar{
-    display:flex;align-items:center;gap:10px;
-    padding:14px 4px 20px;
-  }
-  .brandmark{
-    width:38px;height:38px;border-radius:8px;
-    background:var(--ink);
-    display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;
-  }
+  .brandbar{display:flex;align-items:center;gap:10px;padding:14px 4px 20px;}
+  .brandmark{width:38px;height:38px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .brandmark svg{width:20px;height:20px;}
   .brandtext{line-height:1.15;}
-  .brandtext .eyebrow{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--amber-deep);font-weight:600;
-  }
-  .brandtext h1{
-    font-family:'Oswald',sans-serif;font-weight:600;
-    font-size:20px;margin:1px 0 0;letter-spacing:.01em;
-  }
-
-  /* card = packing slip */
-  .slip{
-    position:relative;
-    background:var(--paper-card);
-    border:1px solid var(--line);
-    border-radius:14px;
-    box-shadow:0 1px 2px rgba(27,36,48,.04), 0 8px 24px -12px rgba(27,36,48,.12);
-    overflow:hidden;
-  }
-  .slip::before{
-    content:"";
-    position:absolute;top:0;left:0;right:0;height:6px;
-    background:repeating-linear-gradient(90deg,var(--amber) 0 14px, transparent 14px 24px);
-    opacity:.9;
-  }
+  .brandtext .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-deep);font-weight:600;}
+  .brandtext h1{font-family:'Oswald',sans-serif;font-weight:600;font-size:20px;margin:1px 0 0;letter-spacing:.01em;}
+  .slip{position:relative;background:var(--paper-card);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(27,36,48,.04),0 8px 24px -12px rgba(27,36,48,.12);overflow:hidden;}
+  .slip::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:repeating-linear-gradient(90deg,var(--amber) 0 14px,transparent 14px 24px);opacity:.9;}
   .slip-inner{padding:22px 18px 20px;}
-
-  .tag{
-    position:absolute;top:14px;right:-1px;
-    background:var(--ink);color:var(--paper);
-    font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;
-    letter-spacing:.08em;text-transform:uppercase;
-    padding:5px 12px 5px 14px;
-    border-radius:6px 0 0 6px;
-  }
-
+  .tag{position:absolute;top:14px;right:-1px;background:var(--ink);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px 5px 14px;border-radius:6px 0 0 6px;}
   .field{margin-bottom:16px;}
-  .field label{
-    display:block;font-size:13px;font-weight:600;color:var(--ink-soft);
-    margin-bottom:6px;
-  }
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
   .field label .opt{font-weight:500;color:var(--slate);font-size:12px;}
   .field label .req{color:var(--danger);margin-left:2px;}
-  .field input[type=text], .field input[type=date], .field textarea{
-    width:100%;border:1.5px solid var(--line);border-radius:10px;
-    padding:12px 13px;font-size:15.5px;font-family:'Inter',sans-serif;
-    background:#FCFBF8;color:var(--ink);
-    transition:border-color .15s ease, background .15s ease;
-  }
-  .field input[type=text]:focus, .field input[type=date]:focus, .field textarea:focus{
-    outline:none;border-color:var(--amber);background:#fff;
-  }
+  .field input[type=text],.field input[type=date],.field textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px 13px;font-size:15.5px;font-family:'Inter',sans-serif;background:#FCFBF8;color:var(--ink);transition:border-color .15s ease,background .15s ease;}
+  .field input[type=text]:focus,.field input[type=date]:focus,.field textarea:focus{outline:none;border-color:var(--amber);background:#fff;}
   #billNo{font-family:'IBM Plex Mono',monospace;font-weight:600;letter-spacing:.02em;}
   .field textarea{resize:vertical;min-height:64px;line-height:1.45;}
-
-  /* photo grid */
   .photogrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
-  .pslot{
-    aspect-ratio:1/1;border-radius:10px;border:1.5px dashed var(--line);
-    background:#FCFBF8;position:relative;overflow:hidden;
-    display:flex;align-items:center;justify-content:center;cursor:pointer;
-  }
+  .pslot{aspect-ratio:1/1;border-radius:10px;border:1.5px dashed var(--line);background:#FCFBF8;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;}
   .pslot:active{background:#F2EFE7;}
   .pslot .plus{color:var(--slate);display:flex;flex-direction:column;align-items:center;gap:3px;}
   .pslot .plus span{font-size:10.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
   .pslot img{width:100%;height:100%;object-fit:cover;display:block;}
-  .pslot .rm{
-    position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;
-    background:rgba(27,36,48,.75);color:#fff;border:none;
-    display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;
-    cursor:pointer;
-  }
+  .pslot .rm{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(27,36,48,.75);color:#fff;border:none;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;cursor:pointer;}
   .photocount{margin-top:8px;font-size:12px;color:var(--slate);font-family:'IBM Plex Mono',monospace;}
-
-  .hint{font-size:12px;color:var(--slate);margin-top:4px;}
-  .errmsg{
-    font-size:13px;color:var(--danger);background:#FBEDE9;border:1px solid #EFC9BE;
-    border-radius:8px;padding:9px 11px;margin-bottom:16px;display:none;
-  }
+  .errmsg{font-size:13px;color:var(--danger);background:#FBEDE9;border:1px solid #EFC9BE;border-radius:8px;padding:9px 11px;margin-bottom:16px;display:none;}
   .errmsg.show{display:block;}
-
-  /* sticky submit bar */
-  .submitbar{
-    position:fixed;left:0;right:0;bottom:0;
-    background:linear-gradient(180deg, rgba(246,244,238,0) 0%, var(--paper) 30%);
-    padding:22px 16px 18px;
-  }
+  .submitbar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(246,244,238,0) 0%,var(--paper) 30%);padding:22px 16px 18px;}
   .submitbar-inner{max-width:520px;margin:0 auto;}
-  #submitBtn{
-    width:100%;border:none;border-radius:12px;
-    background:var(--ink);color:#fff;
-    font-family:'Oswald',sans-serif;font-size:16.5px;font-weight:600;letter-spacing:.03em;
-    padding:15px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:9px;
-    box-shadow:0 6px 18px -6px rgba(27,36,48,.4);
-    transition:transform .1s ease, background .15s ease;
-  }
+  #submitBtn{width:100%;border:none;border-radius:12px;background:var(--ink);color:#fff;font-family:'Oswald',sans-serif;font-size:16.5px;font-weight:600;letter-spacing:.03em;padding:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 6px 18px -6px rgba(27,36,48,.4);transition:transform .1s ease,background .15s ease;}
   #submitBtn:active{transform:scale(.98);}
   #submitBtn:disabled{background:#A8ADB4;cursor:not-allowed;box-shadow:none;}
   .spinner{width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .7s linear infinite;display:none;}
   .spinner.show{display:inline-block;}
   @keyframes spin{to{transform:rotate(360deg);}}
-
-  /* success stamp screen */
   .successwrap{display:none;text-align:center;padding:50px 10px 30px;}
   .successwrap.show{display:block;}
   .mainform.hide{display:none;}
-  .stamp{
-    width:150px;height:150px;margin:0 auto 22px;border-radius:50%;
-    border:4px solid var(--stamp-green);color:var(--stamp-green);
-    display:flex;align-items:center;justify-content:center;
-    transform:rotate(-9deg) scale(0);
-    animation:stampin .5s cubic-bezier(.2,1.6,.4,1) forwards;
-    position:relative;
-  }
-  .stamp::after{
-    content:"";position:absolute;inset:8px;border-radius:50%;border:1.5px solid var(--stamp-green);opacity:.6;
-  }
+  .stamp{width:150px;height:150px;margin:0 auto 22px;border-radius:50%;border:4px solid var(--stamp-green);color:var(--stamp-green);display:flex;align-items:center;justify-content:center;transform:rotate(-9deg) scale(0);animation:stampin .5s cubic-bezier(.2,1.6,.4,1) forwards;position:relative;}
+  .stamp::after{content:"";position:absolute;inset:8px;border-radius:50%;border:1.5px solid var(--stamp-green);opacity:.6;}
   .stamp .stxt{font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;letter-spacing:.04em;line-height:1.25;}
-  @keyframes stampin{
-    0%{transform:rotate(-20deg) scale(2.4);opacity:0;}
-    60%{opacity:1;}
-    100%{transform:rotate(-9deg) scale(1);opacity:1;}
-  }
+  @keyframes stampin{0%{transform:rotate(-20deg) scale(2.4);opacity:0;}60%{opacity:1;}100%{transform:rotate(-9deg) scale(1);opacity:1;}}
   .successwrap h2{font-family:'Oswald',sans-serif;font-size:22px;margin:0 0 6px;}
   .successwrap p{color:var(--slate);font-size:14.5px;margin:0 0 4px;}
-  .refcode{
-    display:inline-block;margin-top:14px;font-family:'IBM Plex Mono',monospace;
-    font-size:13px;background:var(--ink);color:var(--paper);padding:6px 14px;border-radius:7px;letter-spacing:.05em;
-  }
-  .again{
-    margin-top:26px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);
-    font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;padding:12px 22px;border-radius:10px;cursor:pointer;
-  }
+  .refcode{display:inline-block;margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--ink);color:var(--paper);padding:6px 14px;border-radius:7px;letter-spacing:.05em;}
+  .again{margin-top:26px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;padding:12px 22px;border-radius:10px;cursor:pointer;}
   .again:active{background:var(--ink);color:#fff;}
-
   .foot{text-align:center;margin-top:18px;font-size:11.5px;color:var(--slate);}
 </style>
 </head>
 <body>
 <div class="wrap">
-
   <div class="brandbar">
     <div class="brandmark">
       <svg viewBox="0 0 24 24" fill="none"><path d="M3 7L12 3L21 7V17L12 21L3 17V7Z" stroke="#F6F4EE" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 7L12 11L21 7" stroke="#E8960A" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 11V21" stroke="#F6F4EE" stroke-width="1.6"/></svg>
@@ -198,32 +82,26 @@
   <div class="slip">
     <div class="tag" id="topTag">รอกรอกข้อมูล</div>
     <div class="slip-inner">
-
       <div id="errBox" class="errmsg"></div>
-
       <form id="mainform" class="mainform">
         <div class="field">
           <label>ชื่อขนส่ง <span class="req">*</span></label>
           <input type="text" id="carrierName" placeholder="เช่น ไปรษณีย์ไทย, Kerry, Flash, J&T" autocomplete="off">
         </div>
-
         <div class="field">
           <label>เลขที่บิล <span class="req">*</span></label>
           <input type="text" id="billNo" placeholder="เช่น BILL-00123" autocomplete="off">
         </div>
-
         <div class="field">
           <label>วันที่ส่งงาน <span class="req">*</span></label>
           <input type="date" id="deliveryDate">
         </div>
-
         <div class="field">
           <label>รูปถ่ายหลักฐานการส่งงาน <span class="req">*</span> <span class="opt">(สูงสุด 5 รูป)</span></label>
           <div class="photogrid" id="photogrid"></div>
           <div class="photocount" id="photocount">0 / 5 รูป</div>
           <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
         </div>
-
         <div class="field" style="margin-bottom:4px;">
           <label>หมายเหตุ <span class="opt">(ถ้ามี)</span></label>
           <textarea id="note" placeholder="เช่น ฝากไว้ที่ป้อมยาม, ลูกค้าไม่อยู่รับเอง"></textarea>
@@ -237,10 +115,8 @@
         <div class="refcode" id="refcode"></div>
         <div><button class="again" id="againBtn" type="button">ส่งงานอีกใบ</button></div>
       </div>
-
     </div>
   </div>
-
   <div class="foot">ข้อมูลของคุณจะถูกจัดเก็บไว้ในระบบกลางที่ทีมงานเข้าถึงได้</div>
 </div>
 
@@ -254,11 +130,13 @@
 </div>
 
 <script>
-// ตั้งค่านี้หลัง Deploy Google Apps Script แล้ว (ดูคู่มือตั้งค่า.md)
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyr0ysUfRXcyC42YSd9FQkCdWnTkPpOFgyuRY_0LRDgbJivmggv-66Ig3PWgfUlNCjE/exec";
+// ===================================================================
+//  ตั้งค่า URL ของ Google Apps Script Web App ตรงนี้ (ดูคู่มือตั้งค่า.md)
+// ===================================================================
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6EIg_EQLAKTCKFaVDlMRgrfb6XMm6qaDE2c-tAtlsZcdyoCVKZs0jUKJ50Nzp7HG4jg/exec";
 
 const MAX_PHOTOS = 5;
-let photos = []; // {dataUrl}
+let photos = [];
 
 const grid = document.getElementById('photogrid');
 const fileInput = document.getElementById('fileInput');
@@ -270,14 +148,9 @@ const deliveryDate = document.getElementById('deliveryDate');
 const note = document.getElementById('note');
 const topTag = document.getElementById('topTag');
 
-// default date = today
 deliveryDate.value = new Date().toISOString().slice(0,10);
 
-function showError(msg){
-  errBox.textContent = msg;
-  errBox.classList.add('show');
-  errBox.scrollIntoView({behavior:'smooth', block:'center'});
-}
+function showError(msg){ errBox.textContent = msg; errBox.classList.add('show'); errBox.scrollIntoView({behavior:'smooth',block:'center'}); }
 function clearError(){ errBox.classList.remove('show'); errBox.textContent=''; }
 
 function renderGrid(){
@@ -286,20 +159,14 @@ function renderGrid(){
     const slot = document.createElement('div');
     slot.className = 'pslot';
     if(photos[i]){
-      const img = document.createElement('img');
-      img.src = photos[i];
-      slot.appendChild(img);
-      const rm = document.createElement('button');
-      rm.className = 'rm'; rm.type='button'; rm.innerHTML = '&times;';
-      rm.onclick = (e) => { e.stopPropagation(); photos.splice(i,1); renderGrid(); };
+      const img = document.createElement('img'); img.src = photos[i]; slot.appendChild(img);
+      const rm = document.createElement('button'); rm.className='rm'; rm.type='button'; rm.innerHTML='&times;';
+      rm.onclick = (e)=>{ e.stopPropagation(); photos.splice(i,1); renderGrid(); };
       slot.appendChild(rm);
     } else if(i === photos.length){
       slot.innerHTML = '<div class="plus"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="#6B7680" stroke-width="2" stroke-linecap="round"/></svg><span>ถ่าย/แนบ</span></div>';
-      slot.onclick = () => fileInput.click();
-    } else {
-      slot.style.opacity = '.4';
-      slot.style.cursor = 'default';
-    }
+      slot.onclick = ()=> fileInput.click();
+    } else { slot.style.opacity='.4'; slot.style.cursor='default'; }
     grid.appendChild(slot);
   }
   photocount.textContent = photos.length + ' / ' + MAX_PHOTOS + ' รูป';
@@ -309,21 +176,14 @@ renderGrid();
 fileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
   if(files.length === 0) return;
-
   const slotsLeft = MAX_PHOTOS - photos.length;
   const toProcess = files.slice(0, slotsLeft);
-
-  Promise.all(toProcess.map(f => compressImage(f).catch(() => null)))
-    .then(results => {
-      results.forEach(dataUrl => {
-        if(dataUrl && photos.length < MAX_PHOTOS){ photos.push(dataUrl); }
-      });
-      renderGrid();
-      if(results.some(r => r === null)){
-        showError('บางรูปไม่สามารถอ่านได้ กรุณาลองใหม่');
-      }
-      fileInput.value = '';
-    });
+  Promise.all(toProcess.map(f => compressImage(f).catch(()=>null))).then(results => {
+    results.forEach(d => { if(d && photos.length < MAX_PHOTOS){ photos.push(d); } });
+    renderGrid();
+    if(results.some(r => r === null)){ showError('บางรูปไม่สามารถอ่านได้ กรุณาลองใหม่'); }
+    fileInput.value = '';
+  });
 });
 
 function compressImage(file){
@@ -332,15 +192,14 @@ function compressImage(file){
     reader.onload = (ev) => {
       const img = new Image();
       img.onload = () => {
-        const MAX_DIM = 1000;
+        const MAX_DIM = 1400;
         let w = img.width, h = img.height;
-        if(w > h && w > MAX_DIM){ h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
-        else if(h > MAX_DIM){ w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+        if(w > h && w > MAX_DIM){ h = Math.round(h*MAX_DIM/w); w = MAX_DIM; }
+        else if(h > MAX_DIM){ w = Math.round(w*MAX_DIM/h); h = MAX_DIM; }
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.6));
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
       };
       img.onerror = reject;
       img.src = ev.target.result;
@@ -350,22 +209,15 @@ function compressImage(file){
   });
 }
 
-// live tag update
-function updateTag(){
-  if(billNo.value.trim()){
-    topTag.textContent = 'บิล ' + billNo.value.trim();
-  } else {
-    topTag.textContent = 'รอกรอกข้อมูล';
-  }
-}
+function updateTag(){ topTag.textContent = billNo.value.trim() ? ('บิล ' + billNo.value.trim()) : 'รอกรอกข้อมูล'; }
 billNo.addEventListener('input', updateTag);
 
-// ---- JSONP helper: bypasses CORS entirely for reading data back ----
+// ---- JSONP: อ่าน/ยืนยันข้อมูล (ไม่ติด CORS) ----
 function jsonp(url, params){
   return new Promise((resolve, reject) => {
     const cbName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
     const script = document.createElement('script');
-    const timer = setTimeout(() => { cleanup(); reject(new Error('หมดเวลารอการตอบกลับจาก Backend')); }, 12000);
+    const timer = setTimeout(() => { cleanup(); reject(new Error('หมดเวลารอการตอบกลับ')); }, 15000);
     function cleanup(){ delete window[cbName]; script.remove(); clearTimeout(timer); }
     window[cbName] = (data) => { cleanup(); resolve(data); };
     const qs = new URLSearchParams(Object.assign({}, params, { callback: cbName })).toString();
@@ -375,11 +227,15 @@ function jsonp(url, params){
   });
 }
 
-// ---- Submit via chunked JSONP (GET only) — the one method proven to work
-// cross-origin to Apps Script without ever hitting CORS. Each image is split
-// into small pieces (URLs have a length limit), sent one at a time, then a
-// final 'commit' call assembles them and writes the row. ----
-const CHUNK_SIZE = 6000; // ตัวอักษร base64 ต่อ 1 ชิ้น (ปลอดภัยต่อความยาว URL และเร็ว)
+// ---- ส่งข้อมูลบันทึก: fetch แบบ no-cors (ส่งได้ แต่อ่านผลไม่ได้ จึงยืนยันด้วย JSONP) ----
+function sendData(url, payload){
+  return fetch(url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+}
 
 const submitBtn = document.getElementById('submitBtn');
 const spinner = document.getElementById('spinner');
@@ -387,7 +243,6 @@ const submitLabel = document.getElementById('submitLabel');
 
 submitBtn.addEventListener('click', async () => {
   clearError();
-
   const carrier = carrierName.value.trim();
   const bill = billNo.value.trim();
   const date = deliveryDate.value;
@@ -396,7 +251,6 @@ submitBtn.addEventListener('click', async () => {
   if(!bill){ showError('กรุณากรอกเลขที่บิล'); billNo.focus(); return; }
   if(!date){ showError('กรุณาเลือกวันที่ส่งงาน'); deliveryDate.focus(); return; }
   if(photos.length === 0){ showError('กรุณาแนบรูปภาพหลักฐานอย่างน้อย 1 รูป'); return; }
-
   if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('script.google.com') === -1){
     showError('ยังไม่ได้ตั้งค่า Backend — กรุณาใส่ APPS_SCRIPT_URL ในไฟล์นี้ก่อน (ดูคู่มือตั้งค่า.md)');
     return;
@@ -404,64 +258,36 @@ submitBtn.addEventListener('click', async () => {
 
   submitBtn.disabled = true;
   spinner.classList.add('show');
-  submitLabel.textContent = 'กำลังเตรียมข้อมูล...';
+  submitLabel.textContent = 'กำลังส่งข้อมูล...';
 
   try {
-    const uploadId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-
-    // แบ่งแต่ละรูปเป็นชิ้นๆ
-    const chunkCounts = [];
-    let totalChunks = 0;
-    const perImageChunks = photos.map(img => {
-      const pieces = [];
-      for(let i = 0; i < img.length; i += CHUNK_SIZE){ pieces.push(img.slice(i, i + CHUNK_SIZE)); }
-      chunkCounts.push(pieces.length);
-      totalChunks += pieces.length;
-      return pieces;
+    // 1) ส่งข้อมูล (no-cors: อ่านผลไม่ได้ แต่ข้อมูลถูกส่งถึง Backend)
+    await sendData(APPS_SCRIPT_URL, {
+      action: 'submit', carrier: carrier, billNo: bill,
+      deliveryDate: date, note: note.value.trim(), images: photos
     });
 
-    // ส่งชิ้นส่วนทีละชิ้น (ตามลำดับ เพื่อความเสถียร)
-    let sent = 0;
-    for(let imgIndex = 0; imgIndex < perImageChunks.length; imgIndex++){
-      const pieces = perImageChunks[imgIndex];
-      for(let chunkIndex = 0; chunkIndex < pieces.length; chunkIndex++){
-        const res = await jsonp(APPS_SCRIPT_URL, {
-          action: 'chunk',
-          uploadId: uploadId,
-          imgIndex: imgIndex,
-          chunkIndex: chunkIndex,
-          data: pieces[chunkIndex]
-        });
-        if(!res || !res.success){ throw new Error('อัพโหลดรูปไม่สำเร็จ กรุณาลองใหม่'); }
-        sent++;
-        const pct = Math.round(sent / totalChunks * 100);
-        submitLabel.textContent = 'กำลังอัพโหลดรูป ' + pct + '%';
-      }
+    // 2) ยืนยันด้วย JSONP ว่าแถวถูกบันทึกจริง + ดึงเลขอ้างอิง (ลองซ้ำเผื่อ Backend ยังประมวลผลอยู่)
+    let refCode = null;
+    const delays = [1500, 2500, 3500, 4500, 5500, 6500];
+    for(let i = 0; i < delays.length && !refCode; i++){
+      await new Promise(r => setTimeout(r, delays[i]));
+      submitLabel.textContent = 'กำลังยืนยันข้อมูล (' + (i+1) + '/' + delays.length + ')...';
+      try {
+        const res = await jsonp(APPS_SCRIPT_URL, { action: 'search', billNo: bill });
+        const match = (res.results || []).find(r => String(r.billNo).trim() === String(bill).trim());
+        if(match){ refCode = match.refCode; }
+      } catch(err){ console.warn('confirm attempt ' + i + ':', err); }
     }
 
-    // สั่ง commit ให้ Backend ประกอบรูป + บันทึกลง Sheet
-    submitLabel.textContent = 'กำลังบันทึก...';
-    const commitRes = await jsonp(APPS_SCRIPT_URL, {
-      action: 'commit',
-      uploadId: uploadId,
-      carrier: carrier,
-      billNo: bill,
-      deliveryDate: date,
-      note: note.value.trim(),
-      imgCount: photos.length,
-      chunkCounts: chunkCounts.join(',')
-    });
+    if(!refCode){ throw new Error('ไม่พบข้อมูลที่เพิ่งส่งในระบบ อาจบันทึกไม่สำเร็จ กรุณาลองใหม่'); }
 
-    if(!commitRes || !commitRes.success){
-      throw new Error((commitRes && commitRes.error) ? commitRes.error : 'บันทึกไม่สำเร็จ กรุณาลองใหม่');
-    }
-
-    document.getElementById('refcode').textContent = 'อ้างอิง: ' + commitRes.refCode;
+    document.getElementById('refcode').textContent = 'อ้างอิง: ' + refCode;
     document.getElementById('mainform').classList.add('hide');
     document.getElementById('submitbar').style.display = 'none';
     document.getElementById('successwrap').classList.add('show');
 
-  } catch(err) {
+  } catch(err){
     console.error('Save failed:', err);
     showError('บันทึกไม่สำเร็จ: ' + err.message);
   } finally {
@@ -471,19 +297,13 @@ submitBtn.addEventListener('click', async () => {
   }
 });
 
-
 document.getElementById('againBtn').addEventListener('click', () => {
-  carrierName.value = '';
-  billNo.value = '';
-  deliveryDate.value = new Date().toISOString().slice(0,10);
-  note.value = '';
-  photos = [];
-  renderGrid();
-  updateTag();
+  carrierName.value=''; billNo.value=''; deliveryDate.value=new Date().toISOString().slice(0,10);
+  note.value=''; photos=[]; renderGrid(); updateTag();
   document.getElementById('mainform').classList.remove('hide');
-  document.getElementById('submitbar').style.display = 'block';
+  document.getElementById('submitbar').style.display='block';
   document.getElementById('successwrap').classList.remove('show');
-  window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
 });
 </script>
 </body>
